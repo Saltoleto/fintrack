@@ -7,7 +7,7 @@ Este repositório é entregue por **Sprints**, sempre com código **completo e f
 
 ---
 
-## Features do produto
+## Features do produto 
 
 ### Autenticação
 - Login
