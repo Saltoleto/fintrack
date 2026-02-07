@@ -9,7 +9,7 @@ export type AllocationTarget = {
   updated_at: string;
 
   // Embeds (PostgREST)
-  asset_classes?: { name: string } | null;
+  asset_classes?: { name: string } | { name: string }[] | null;
 };
 
 export async function listAllocationTargets(userId: string): Promise<AllocationTarget[]> {
@@ -27,16 +27,14 @@ export async function upsertAllocationTarget(input: {
   user_id: string;
   asset_class_id: string;
   target_percent: number;
-}): Promise<AllocationTarget> {
-  const now = new Date().toISOString();
-  const { data, error } = await supabase
-    .from("allocation_targets")
-    .upsert({ ...input, updated_at: now }, { onConflict: "user_id,asset_class_id" })
-    .select("id,user_id,asset_class_id,target_percent,created_at,updated_at,asset_classes(name)")
-    .single();
+}) {
+  const { error } = await supabase.rpc("upsert_allocation_target_safe", {
+    p_user_id: input.user_id,
+    p_asset_class_id: input.asset_class_id,
+    p_target_percent: input.target_percent
+  });
 
   if (error) throw error;
-  return data as AllocationTarget;
 }
 
 export async function deleteAllocationTarget(id: string, userId: string) {

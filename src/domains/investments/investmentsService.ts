@@ -21,8 +21,8 @@ export type Investment = {
   updated_at: string;
 
   // Embeds (PostgREST)
-  asset_classes?: { name: string } | null;
-  institutions?: { name: string } | null;
+  asset_classes?: { name: string } | { name: string }[] | null;
+  institutions?: { name: string } | { name: string }[] | null;
 };
 
 export type InvestmentFilters = {

@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/states/EmptyState";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useToaster } from "@/components/feedback/useToaster";
 import { useAuth } from "@/domains/auth/useAuth";
+import { embedName } from "@/utils/embeds";
 import { listAssetClasses, type AssetClass } from "@/domains/reference/assetClassesService";
 import {
   deleteAllocationTarget,
@@ -90,7 +91,7 @@ export function AllocationPage() {
   }
 
   async function onDelete(item: AllocationTarget) {
-    const className = item.asset_classes?.name ?? classMap.get(item.asset_class_id) ?? "classe";
+    const className = embedName(item.asset_classes) ?? classMap.get(item.asset_class_id) ?? "classe";
     const ok = confirm(`Remover a classe "${className}"?`);
     if (!ok) return;
 
@@ -164,6 +165,11 @@ export function AllocationPage() {
 
         <Card className="p-6">
           <div className="font-semibold">Suas classes</div>
+<div className="mt-1 text-xs text-muted">
+  Total configurado: {items.reduce((acc, i) => acc + Number(i.target_percent), 0)}% —
+  Faltam: {100 - items.reduce((acc, i) => acc + Number(i.target_percent), 0)}%
+</div>
+
 
           {loading ? (
             <div className="mt-4 text-sm text-muted">Carregando...</div>
@@ -178,7 +184,7 @@ export function AllocationPage() {
           ) : (
             <div className="mt-4 space-y-2">
               {items.map((it) => {
-                const name = it.asset_classes?.name ?? classMap.get(it.asset_class_id) ?? "—";
+                const name = embedName(it.asset_classes) ?? classMap.get(it.asset_class_id) ?? "—";
                 return (
                   <div
                     key={it.id}

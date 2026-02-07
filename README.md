@@ -117,3 +117,18 @@ Rode no Supabase (SQL Editor):
 - `supabase/hotfix_sprint4_1.sql`
 
 Isso remove o `NOT NULL` das colunas legadas (`asset_class`, `institution_name`) para que o modelo normalizado (IDs) funcione sem bloqueios.
+
+---
+### Sprint 5 — Regra de Negócio (Concentração)
+- A soma da concentração desejada **não pode ultrapassar 100%**
+- Validação dupla:
+  - Frontend (UX imediata)
+  - RPC no banco (garantia sem trigger)
+
+
+---
+
+## Hotfix (embeds PostgREST)
+
+Em alguns projetos Supabase/PostgREST, relações embutidas (ex.: `asset_classes(name)`) podem retornar **objeto** ou **array** dependendo da configuração de relacionamento.
+Este pacote inclui um helper `embedName()` em `src/utils/embeds.ts` e tipagens mais tolerantes para evitar erros de build.

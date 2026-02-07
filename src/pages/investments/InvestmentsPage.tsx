@@ -7,6 +7,7 @@ import { ErrorState } from "@/components/states/ErrorState";
 import { useToaster } from "@/components/feedback/useToaster";
 import { useAuth } from "@/domains/auth/useAuth";
 import { formatBRL, toNumber } from "@/utils/format";
+import { embedName } from "@/utils/embeds";
 import {
   createInvestment,
   deleteInvestment,
@@ -463,8 +464,8 @@ export function InvestmentsPage() {
             ) : (
               <div className="mt-2 space-y-2">
                 {items.map((it) => {
-                  const className = it.asset_classes?.name ?? classMap.get(it.asset_class_id) ?? "—";
-                  const instName = it.institutions?.name ?? (it.institution_id ? instMap.get(it.institution_id) : "") ?? "";
+                  const className = embedName(it.asset_classes) ?? classMap.get(it.asset_class_id) ?? "—";
+                  const instName = embedName(it.institutions) ?? (it.institution_id ? instMap.get(it.institution_id) : "") ?? "";
                   return (
                     <div key={it.id} className="rounded-xl border border-border p-3">
                       <div className="flex items-start justify-between gap-3">

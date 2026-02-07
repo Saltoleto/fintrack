@@ -1,7 +1,7 @@
 {
   "name": "fintrack",
   "private": true,
-  "version": "0.4.1-sprint4-hotfix1",
+  "version": "0.5.1-hotfix-embeds",
   "type": "module",
   "scripts": {
     "dev": "vite",
