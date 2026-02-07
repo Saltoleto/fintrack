@@ -9,6 +9,7 @@ import { ForgotPasswordPage } from "@/pages/auth/ForgotPasswordPage";
 import { ResetPasswordPage } from "@/pages/auth/ResetPasswordPage";
 
 import { PlaceholderPage } from "@/pages/PlaceholderPage";
+import { InvestmentsPage } from "@/pages/investments/InvestmentsPage";
 import { GoalsPage } from "@/pages/goals/GoalsPage";
 import { AllocationPage } from "@/pages/allocation/AllocationPage";
 
@@ -31,7 +32,7 @@ export function AppRoutes() {
       >
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<PlaceholderPage title="Dashboard" />} />
-        <Route path="/investments" element={<PlaceholderPage title="Investimentos" />} />
+        <Route path="/investments" element={<InvestmentsPage />} />
         <Route path="/goals" element={<GoalsPage />} />
         <Route path="/allocation" element={<AllocationPage />} />
         <Route path="/settings" element={<PlaceholderPage title="Configurações" />} />

@@ -9,13 +9,11 @@ export function PlaceholderPage({ title }: { title: string }) {
           <h1 className="text-xl font-semibold">{title}</h1>
           <p className="mt-1 text-sm text-muted">Esta página será implementada nas próximas sprints.</p>
         </div>
-        <Badge>SPRINT 2</Badge>
+        <Badge>SPRINT 3</Badge>
       </div>
 
       <Card className="p-6">
-        <div className="text-sm text-muted">
-          Metas e Concentração por Classe estão prontas. Próximas sprints irão adicionar investimentos, dashboard e insights.
-        </div>
+        <div className="text-sm text-muted">Investimentos estão prontos. Próximas sprints irão adicionar dashboard e insights.</div>
       </Card>
     </div>
   );

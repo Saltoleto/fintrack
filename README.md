@@ -60,10 +60,14 @@ Este repositório é entregue por **Sprints**, sempre com código **completo e f
 - CRUD de metas
 - CRUD de concentração por classe
 
-### Sprint 3 — Cadastro de investimentos
+### Sprint 3 — Cadastro de investimentos (✅ neste pacote)
 - CRUD de investimentos
-- Associação opcional a metas
-- Listagem e filtros básicos
+- Validação de liquidez:
+  - `diaria` → sem vencimento
+  - `no_vencimento` → vencimento obrigatório
+- Associação opcional com metas
+- **Atualização de invested_amount da meta feita na aplicação (sem trigger)** por recálculo a partir dos investimentos vinculados
+- Filtros básicos (classe e período)
 
 ### Sprint 4 — Dashboard gerencial
 - Patrimônio, concentrações, progresso de metas
@@ -188,6 +192,22 @@ Este pacote inclui o script SQL completo da Sprint 2:
 - RLS está habilitado e bloqueia acessos fora do próprio usuário.
 - **A aplicação envia `user_id` explicitamente** em inserts e updates.
 - Se você tentar inserir sem `user_id`, receberá erro de RLS (comportamento esperado).
+
+
+---
+
+## Investimentos (Sprint 3)
+
+Tela: `/investments`
+
+### Regras de liquidez
+- **Diária**: não envia `maturity_date` (fica `null`)
+- **No vencimento**: `maturity_date` é obrigatório (validação no formulário e no banco)
+
+### Metas e invested_amount (sem triggers)
+Para manter o valor aportado (`invested_amount`) consistente:
+- Ao criar/editar/remover um investimento vinculado a uma meta, a aplicação recalcula o total investido na meta somando os investimentos vinculados e atualiza `goals.invested_amount`.
+- O recálculo está em `src/domains/goals/goalsRecalc.ts`.
 
 
 ## Checklist de QA (use para aceite da sprint)

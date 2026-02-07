@@ -198,3 +198,5 @@ a { color: inherit; }
 .code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; padding: 6px 10px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(232,238,248,0.12); }
 
 @media (min-width: 768px) { .md\\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.px-3 { padding-left: 12px; padding-right: 12px; }
