@@ -144,3 +144,20 @@ Este pacote inclui um helper `embedName()` em `src/utils/embeds.ts` e tipagens m
   - “Este mês você ainda não realizou nenhum investimento”
   - “Sua alocação alvo ainda não fecha 100%”
 - Estados de UX: loading / vazio / dados
+
+
+---
+## Sprint 7 — UX Avançado & Insights Inteligentes (✅ Entregue)
+- Barras de progresso das metas **no Dashboard**
+- Tela de metas focada em gestão (sem barras)
+- Mensagens inteligentes:
+  - “Este mês você ainda não realizou nenhum investimento”
+  - “Com R$ X você atinge a meta Y”
+  - “Sua carteira está muito concentrada na classe X”
+- Destaques visuais:
+  - metas próximas de atingir (>=80%)
+  - concentração excessiva (>=50% ou +10pp vs alvo)
+
+- Hotfix: Aportado (metas) agora é **somente leitura** e calculado via investimentos vinculados.
+
+- Hotfix: ajuste de build (TypeScript) para recálculo de aportado via função interna.

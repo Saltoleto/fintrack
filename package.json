@@ -1,7 +1,7 @@
 {
   "name": "fintrack",
   "private": true,
-  "version": "0.6.0-sprint6",
+  "version": "0.7.9-sprint7-hotfix-build-import",
   "type": "module",
   "scripts": {
     "dev": "vite",

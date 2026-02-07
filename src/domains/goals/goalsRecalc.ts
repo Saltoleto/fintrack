@@ -1,4 +1,4 @@
-import { updateGoal } from "@/domains/goals/goalsService";
+import { updateGoalInvestedAmount } from "@/domains/goals/goalsService";
 import { sumInvestmentsByGoal } from "@/domains/investments/investmentsService";
 
 /**
@@ -7,5 +7,5 @@ import { sumInvestmentsByGoal } from "@/domains/investments/investmentsService";
  */
 export async function recalcGoalInvestedAmount(userId: string, goalId: string) {
   const total = await sumInvestmentsByGoal(userId, goalId);
-  await updateGoal(goalId, userId, { invested_amount: total });
+  await updateGoalInvestedAmount(goalId, userId, total);
 }

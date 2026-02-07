@@ -200,3 +200,42 @@ a { color: inherit; }
 @media (min-width: 768px) { .md\\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 .px-3 { padding-left: 12px; padding-right: 12px; }
+
+
+/* ===== Buttons (UX feedback) ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 80ms ease, filter 120ms ease, background-color 120ms ease, border-color 120ms ease, opacity 120ms ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:active { transform: translateY(1px) scale(0.99); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.btn:focus-visible {
+  outline: 2px solid rgb(var(--primary));
+  outline-offset: 2px;
+}
+
+.btn-primary { background: rgb(var(--primary)); color: rgb(var(--onPrimary)); }
+.btn-primary:hover { filter: brightness(1.05); }
+
+.btn-secondary { background: rgb(var(--surface)); color: rgb(var(--fg)); border-color: rgb(var(--border)); }
+.btn-secondary:hover { filter: brightness(1.05); }
+
+.btn-ghost { background: transparent; color: rgb(var(--fg)); border-color: transparent; }
+.btn-ghost:hover { background: rgba(var(--surface), 0.6); border-color: rgb(var(--border)); }
+
+.btn-danger { background: rgb(var(--danger)); color: rgb(var(--onDanger)); }
+.btn-danger:hover { filter: brightness(1.05); }

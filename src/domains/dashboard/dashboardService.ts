@@ -26,6 +26,8 @@ export type DashboardGoalRow = {
 export type DashboardInsights = {
   noInvestmentsThisMonth: boolean;
   targetNotClosedTo100: boolean;
+  goalTopUpSuggestion: { goalId: string; goalTitle: string; missingAmount: number } | null;
+  concentrationWarning: { assetClassId: string; className: string; realPercent: number } | null;
 };
 
 export type DashboardData = {
@@ -109,10 +111,33 @@ export async function loadDashboard(userId: string): Promise<DashboardData> {
   const totalTarget = Array.from(targetByClass.values()).reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
   const targetNotClosedTo100 = totalTarget > 0 && totalTarget < 100;
 
+  // Suggestion: smallest top-up to reach a goal (prioritize smaller missing amount)
+  const goalTopUpSuggestion =
+    goalRows
+      .map((g) => ({ g, missing: Math.max(0, g.target_amount - g.invested_amount) }))
+      .filter((x) => x.missing > 0)
+      .sort((a, b) => a.missing - b.missing)[0] ?? null;
+
+  // Concentration warning: most concentrated class above threshold
+  const mostConcentrated = rows[0] ?? null;
+  const concentrationWarning =
+    mostConcentrated && mostConcentrated.real_percent >= 50
+      ? {
+          assetClassId: mostConcentrated.asset_class_id,
+          className: mostConcentrated.name,
+          realPercent: mostConcentrated.real_percent
+        }
+      : null;
+
   return {
     totalPatrimony,
     classes: rows,
     goals: goalRows,
-    insights: { noInvestmentsThisMonth, targetNotClosedTo100 }
+    insights: {
+      noInvestmentsThisMonth,
+      targetNotClosedTo100,
+      goalTopUpSuggestion: goalTopUpSuggestion ? { goalId: goalTopUpSuggestion.g.id, goalTitle: goalTopUpSuggestion.g.title, missingAmount: goalTopUpSuggestion.missing } : null,
+      concentrationWarning
+    }
   };
 }

@@ -81,15 +81,10 @@ export function GoalsPage() {
     }
 
     const target = Number(form.target_amount);
-    const invested = Number(form.invested_amount);
     const priority = Number(form.priority);
 
     if (!Number.isFinite(target) || target < 0) {
       toaster.show({ title: "Valor da meta inválido", message: "Informe um valor válido.", variant: "warning" });
-      return;
-    }
-    if (!Number.isFinite(invested) || invested < 0) {
-      toaster.show({ title: "Valor aportado inválido", message: "Informe um valor válido.", variant: "warning" });
       return;
     }
     if (!Number.isInteger(priority) || priority < 1 || priority > 5) {
@@ -100,10 +95,10 @@ export function GoalsPage() {
     setSaving(true);
     try {
       if (form.id) {
-        await updateGoal(form.id, userId, { title, target_amount: target, invested_amount: invested, priority });
+        await updateGoal(form.id, userId, { title, target_amount: target, priority });
         toaster.show({ title: "Meta atualizada", variant: "success" });
       } else {
-        await createGoal({ user_id: userId, title, target_amount: target, invested_amount: invested, priority });
+        await createGoal({ user_id: userId, title, target_amount: target, priority });
         toaster.show({ title: "Meta criada", variant: "success" });
       }
 
@@ -181,14 +176,19 @@ export function GoalsPage() {
               onChange={(e) => setForm((s) => ({ ...s, target_amount: e.target.value }))}
               required
             />
-            <Input
-              label="Valor aportado (R$)"
-              type="number"
-              inputMode="decimal"
-              placeholder="0"
-              value={form.invested_amount}
-              onChange={(e) => setForm((s) => ({ ...s, invested_amount: e.target.value }))}
-            />
+            <div>
+  <Input
+    label="Valor aportado (R$)"
+    type="number"
+    inputMode="decimal"
+    placeholder="0"
+    value={form.invested_amount}
+    disabled
+  />
+  <div className="mt-1 text-xs text-muted">
+    Este valor é calculado automaticamente a partir dos investimentos vinculados à meta.
+  </div>
+</div>
             <Input
               label="Prioridade (1 a 5)"
               type="number"
@@ -241,7 +241,7 @@ export function GoalsPage() {
                       <div>
                         <div className="font-medium">{g.title}</div>
                         <div className="mt-1 text-xs text-muted">
-                          {formatBRL(invested)} / {formatBRL(target)} • Prioridade {g.priority} • {progress}%
+                          {formatBRL(invested)} / {formatBRL(target)} • Prioridade {g.priority}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -252,10 +252,6 @@ export function GoalsPage() {
                           Remover
                         </Button>
                       </div>
-                    </div>
-
-                    <div className="mt-3 rounded-lg border border-border" style={{ overflow: "hidden" }}>
-                      <div style={{ width: `${progress}%`, height: 8, background: "rgba(99,102,241,0.85)" }} />
                     </div>
                   </div>
                 );

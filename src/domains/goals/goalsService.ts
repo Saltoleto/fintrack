@@ -26,13 +26,12 @@ export async function createGoal(input: {
   user_id: string;
   title: string;
   target_amount: number;
-  invested_amount: number;
-  priority: number;
+    priority: number;
 }): Promise<Goal> {
   const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("goals")
-    .insert({ ...input, updated_at: now })
+    .insert({ invested_amount: 0, ...input, updated_at: now })
     .select("*")
     .single();
 
@@ -43,12 +42,12 @@ export async function createGoal(input: {
 export async function updateGoal(
   id: string,
   userId: string,
-  patch: Partial<Pick<Goal, "title" | "target_amount" | "invested_amount" | "priority">>
+  patch: Partial<Pick<Goal, "title" | "target_amount" | "priority">>
 ): Promise<Goal> {
   const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("goals")
-    .update({ ...patch, updated_at: now })
+    .update({ ...patch, invested_amount: undefined, updated_at: now })
     .eq("id", id)
     .eq("user_id", userId)
     .select("*")
@@ -56,6 +55,18 @@ export async function updateGoal(
 
   if (error) throw error;
   return data as Goal;
+}
+
+export async function updateGoalInvestedAmount(goalId: string, userId: string, investedAmount: number): Promise<void> {
+  const now = new Date().toISOString();
+  // This update is internal: invested_amount is derived from linked investments.
+  const { error } = await supabase
+    .from("goals")
+    .update({ invested_amount: investedAmount, updated_at: now })
+    .eq("id", goalId)
+    .eq("user_id", userId);
+
+  if (error) throw error;
 }
 
 export async function deleteGoal(id: string, userId: string) {

@@ -65,6 +65,7 @@ export function InvestmentsPage() {
 
   const [items, setItems] = useState<Investment[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const goalTitleById = useMemo(() => new Map(goals.map((g) => [g.id, g.title])), [goals]);
   const [classes, setClasses] = useState<AssetClass[]>([]);
   const [institutions, setInstitutions] = useState<Institution[]>([]);
 
@@ -475,7 +476,7 @@ export function InvestmentsPage() {
                             {it.invested_at} • {className} • {it.liquidity_type === "diaria" ? "Diária" : "No vencimento"}
                             {it.maturity_date ? ` • Vence em ${it.maturity_date}` : ""}
                             {instName ? ` • ${instName}` : ""}
-                            {it.goal_id ? ` • Vinculado a meta` : ""}
+                            {it.goal_id ? ` • Vinculado à meta${goalTitleById.get(it.goal_id) ? ` - ${goalTitleById.get(it.goal_id)}` : ""}` : ""}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
