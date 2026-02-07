@@ -9,19 +9,24 @@ export type Investment = {
   invested_at: string; // YYYY-MM-DD
   amount: string | number;
 
-  asset_class: string;
+  asset_class_id: string;
+  institution_id: string | null;
+
   liquidity_type: LiquidityType;
   maturity_date: string | null; // YYYY-MM-DD
-  institution_name: string | null;
 
   goal_id: string | null;
 
   created_at: string;
   updated_at: string;
+
+  // Embeds (PostgREST)
+  asset_classes?: { name: string } | null;
+  institutions?: { name: string } | null;
 };
 
 export type InvestmentFilters = {
-  assetClass?: string;
+  assetClassId?: string;
   dateFrom?: string; // YYYY-MM-DD
   dateTo?: string; // YYYY-MM-DD
 };
@@ -29,11 +34,11 @@ export type InvestmentFilters = {
 export async function listInvestments(userId: string, filters: InvestmentFilters = {}): Promise<Investment[]> {
   let q = supabase
     .from("investments")
-    .select("*")
+    .select("id,user_id,invested_at,amount,asset_class_id,institution_id,liquidity_type,maturity_date,goal_id,created_at,updated_at,asset_classes(name),institutions(name)")
     .eq("user_id", userId)
     .order("invested_at", { ascending: false });
 
-  if (filters.assetClass) q = q.eq("asset_class", filters.assetClass);
+  if (filters.assetClassId) q = q.eq("asset_class_id", filters.assetClassId);
   if (filters.dateFrom) q = q.gte("invested_at", filters.dateFrom);
   if (filters.dateTo) q = q.lte("invested_at", filters.dateTo);
 
@@ -46,17 +51,17 @@ export async function createInvestment(input: {
   user_id: string;
   invested_at: string;
   amount: number;
-  asset_class: string;
+  asset_class_id: string;
+  institution_id: string | null;
   liquidity_type: LiquidityType;
   maturity_date: string | null;
-  institution_name: string | null;
   goal_id: string | null;
 }): Promise<Investment> {
   const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("investments")
     .insert({ ...input, updated_at: now })
-    .select("*")
+    .select("id,user_id,invested_at,amount,asset_class_id,institution_id,liquidity_type,maturity_date,goal_id,created_at,updated_at,asset_classes(name),institutions(name)")
     .single();
 
   if (error) throw error;
@@ -69,7 +74,7 @@ export async function updateInvestment(
   patch: Partial<
     Pick<
       Investment,
-      "invested_at" | "amount" | "asset_class" | "liquidity_type" | "maturity_date" | "institution_name" | "goal_id"
+      "invested_at" | "amount" | "asset_class_id" | "institution_id" | "liquidity_type" | "maturity_date" | "goal_id"
     >
   >
 ): Promise<Investment> {
@@ -79,7 +84,7 @@ export async function updateInvestment(
     .update({ ...patch, updated_at: now })
     .eq("id", id)
     .eq("user_id", userId)
-    .select("*")
+    .select("id,user_id,invested_at,amount,asset_class_id,institution_id,liquidity_type,maturity_date,goal_id,created_at,updated_at,asset_classes(name),institutions(name)")
     .single();
 
   if (error) throw error;

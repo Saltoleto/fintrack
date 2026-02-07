@@ -69,174 +69,51 @@ Este repositório é entregue por **Sprints**, sempre com código **completo e f
 - **Atualização de invested_amount da meta feita na aplicação (sem trigger)** por recálculo a partir dos investimentos vinculados
 - Filtros básicos (classe e período)
 
-### Sprint 4 — Dashboard gerencial
-- Patrimônio, concentrações, progresso de metas
-- UI profissional e responsiva
-
-### Sprint 5 — Mensagens inteligentes
-- Regras e insights acionáveis
-
-### Sprint 6 — Polimento e release
-- Refinos de UX
-- PWA avançado
-- Performance e checklist de release
-
----
-
-## Acordos de projeto (obrigatórios)
-
-1) **Código sempre funcional e completo**
-- Toda entrega contém 100% dos arquivos necessários (inclui `.env`, configs, assets e README).
-- Projeto deve rodar seguindo apenas as instruções deste README.
-
-2) **Melhores práticas e padrões**
-- Arquitetura consistente, separação de responsabilidades e código legível.
-- UX consistente (loading/erro/vazio).
-- Segurança explícita no Supabase (RLS e regras claras).
-
-3) **Entregar o que foi esperado na sprint**
-- Não entregar menos do que o combinado.
-- Não ampliar escopo se comprometer estabilidade.
-- Mudanças de escopo só com alinhamento explícito.
-
-4) **QA no final de cada sprint (obrigatório)**
-Rodar sempre:
-- `npm install`
-- `npm run typecheck`
-- `npm run lint`
-- `npm run build`
-- `npm run preview`
-Além disso:
-- navegação manual nas telas afetadas
-- verificação de console sem erros críticos
-
-5) **Antes de iniciar cada sprint, validar o que será entregue**
-- objetivo, escopo e entregáveis devem ser aprovados explicitamente antes de codar.
+### Sprint 4 — Normalização de Domínio (✅ neste pacote)
+- `asset_classes` e `institutions` criadas como entidades (selecionáveis)
+- Seed inicial (classes e instituições do Brasil)
+- Migração segura de dados existentes:
+  - investimentos: `asset_class_id`, `institution_id`
+  - concentração: `asset_class_id`
+- Frontend refatorado:
+  - Classe selecionável (investimentos e concentração)
+  - Instituição selecionável (investimentos)
+- Documentação atualizada para refletir o acordo e a migração
 
 ---
 
-## Requisitos
-- Node.js 18+ (recomendado 20+)
+## Banco de dados (Sprint 4)
 
----
+Este pacote inclui o script SQL da Sprint 4:
 
-## Como rodar (desenvolvimento)
+- `supabase/schema_sprint4.sql`
 
-1) Instale dependências:
-```bash
-npm install
-```
+### Como aplicar
+1) Supabase → **SQL Editor**
+2) Execute `supabase/schema_sprint4.sql`
+3) Verifique:
+   - Tabelas: `asset_classes`, `institutions`
+   - Colunas novas:
+     - `investments.asset_class_id`
+     - `investments.institution_id`
+     - `allocation_targets.asset_class_id`
+4) A aplicação Sprint 4 passa a usar **somente IDs** (selecionáveis)
 
-2) Variáveis de ambiente:
-- O repositório já acompanha um `.env` com valores placeholder.
-- Para usar Supabase real, edite `.env` com os dados do seu projeto:
-
-```env
-VITE_SUPABASE_URL="https://YOUR_PROJECT.supabase.co"
-VITE_SUPABASE_ANON_KEY="YOUR_ANON_KEY"
-```
-
-3) Rode:
-```bash
-npm run dev
-```
-
-Acesse: http://localhost:5173
-
----
-
-## PWA
-Em dev, o PWA está habilitado.
-
-Em produção:
-```bash
-npm run build
-npm run preview
-```
-
----
-
-## Recuperação e redefinição de senha (Supabase)
-
-O fluxo funciona assim:
-1) Em **/forgot**, o sistema envia um link usando `resetPasswordForEmail`.
-2) O link redireciona para **/reset-password**, onde o usuário define a nova senha.
-
-### Configuração necessária no Supabase (produção)
-No painel do Supabase:
-- Auth → URL Configuration
-  - **Site URL**: seu domínio (ex.: https://app.seudominio.com)
-  - **Redirect URLs**: inclua:
-    - `https://seu-dominio.com/reset-password`
-    - e/ou a URL do seu ambiente de staging
-
----
-
----
-
-## Banco de dados (Sprint 2)
-
-Este pacote inclui o script SQL completo da Sprint 2:
-
-- `supabase/schema_sprint2.sql`
-
-### Como aplicar no Supabase
-1) Acesse o painel do Supabase → **SQL Editor**
-2) Cole e execute o conteúdo de `supabase/schema_sprint2.sql`
-3) Confirme que as tabelas foram criadas:
-   - `goals`
-   - `allocation_targets`
-   - `investments`
-
-### Importante sobre RLS e user_id
-- RLS está habilitado e bloqueia acessos fora do próprio usuário.
-- **A aplicação envia `user_id` explicitamente** em inserts e updates.
-- Se você tentar inserir sem `user_id`, receberá erro de RLS (comportamento esperado).
+### Migração (sem perda)
+- O script faz *backfill* dos IDs a partir do texto existente.
+- As colunas antigas **não são removidas nesta sprint** para reduzir risco.
 
 
 ---
 
-## Investimentos (Sprint 3)
+## Hotfix Sprint 4.1 (Concentração por classe)
 
-Tela: `/investments`
+Se ao salvar Concentração por Classe você receber:
 
-### Regras de liquidez
-- **Diária**: não envia `maturity_date` (fica `null`)
-- **No vencimento**: `maturity_date` é obrigatório (validação no formulário e no banco)
+`23502 null value in column "asset_class" of relation "allocation_targets" violates not-null constraint`
 
-### Metas e invested_amount (sem triggers)
-Para manter o valor aportado (`invested_amount`) consistente:
-- Ao criar/editar/remover um investimento vinculado a uma meta, a aplicação recalcula o total investido na meta somando os investimentos vinculados e atualiza `goals.invested_amount`.
-- O recálculo está em `src/domains/goals/goalsRecalc.ts`.
+Rode no Supabase (SQL Editor):
 
+- `supabase/hotfix_sprint4_1.sql`
 
-## Checklist de QA (use para aceite da sprint)
-
-Executar:
-```bash
-npm install
-npm run typecheck
-npm run lint
-npm run build
-npm run preview
-```
-
-Validar manualmente:
-- `/login` → login com credenciais válidas e inválidas
-- `/signup` → criar conta e validar mensagem (com/sem confirmação)
-- `/forgot` → solicitar link
-- `/reset-password` → atualizar senha via link do e-mail
-- rotas privadas redirecionam corretamente para `/login`
-
-Console:
-- sem erros críticos
-- sem loops de renderização
-
----
-
-## Scripts úteis
-- `npm run dev`
-- `npm run typecheck`
-- `npm run lint`
-- `npm run build`
-- `npm run preview`
+Isso remove o `NOT NULL` das colunas legadas (`asset_class`, `institution_name`) para que o modelo normalizado (IDs) funcione sem bloqueios.

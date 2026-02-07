@@ -3,18 +3,21 @@ import { supabase } from "@/services/supabase";
 export type AllocationTarget = {
   id: string;
   user_id: string;
-  asset_class: string;
+  asset_class_id: string;
   target_percent: string | number;
   created_at: string;
   updated_at: string;
+
+  // Embeds (PostgREST)
+  asset_classes?: { name: string } | null;
 };
 
 export async function listAllocationTargets(userId: string): Promise<AllocationTarget[]> {
   const { data, error } = await supabase
     .from("allocation_targets")
-    .select("*")
+    .select("id,user_id,asset_class_id,target_percent,created_at,updated_at,asset_classes(name)")
     .eq("user_id", userId)
-    .order("asset_class", { ascending: true });
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
   return (data ?? []) as AllocationTarget[];
@@ -22,14 +25,14 @@ export async function listAllocationTargets(userId: string): Promise<AllocationT
 
 export async function upsertAllocationTarget(input: {
   user_id: string;
-  asset_class: string;
+  asset_class_id: string;
   target_percent: number;
 }): Promise<AllocationTarget> {
   const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("allocation_targets")
-    .upsert({ ...input, updated_at: now }, { onConflict: "user_id,asset_class" })
-    .select("*")
+    .upsert({ ...input, updated_at: now }, { onConflict: "user_id,asset_class_id" })
+    .select("id,user_id,asset_class_id,target_percent,created_at,updated_at,asset_classes(name)")
     .single();
 
   if (error) throw error;

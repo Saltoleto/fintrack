@@ -17,6 +17,8 @@ import {
 } from "@/domains/investments/investmentsService";
 import { listGoals, type Goal } from "@/domains/goals/goalsService";
 import { recalcGoalInvestedAmount } from "@/domains/goals/goalsRecalc";
+import { listAssetClasses, type AssetClass } from "@/domains/reference/assetClassesService";
+import { listInstitutions, type Institution } from "@/domains/reference/institutionsService";
 
 type FormState = {
   id?: string;
@@ -24,11 +26,11 @@ type FormState = {
   invested_at: string;
   amount: string;
 
-  asset_class: string;
+  asset_class_id: string;
+  institution_id: string;
+
   liquidity_type: LiquidityType;
   maturity_date: string;
-
-  institution_name: string;
 
   goal_id: string;
 };
@@ -38,16 +40,12 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
 const emptyForm: FormState = {
   invested_at: todayISO(),
   amount: "",
-  asset_class: "",
+  asset_class_id: "",
+  institution_id: "",
   liquidity_type: "diaria",
   maturity_date: "",
-  institution_name: "",
   goal_id: ""
 };
-
-function normalizeAssetClass(value: string) {
-  return value.trim();
-}
 
 function asNullable(value: string): string | null {
   const v = value.trim();
@@ -66,23 +64,23 @@ export function InvestmentsPage() {
 
   const [items, setItems] = useState<Investment[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [classes, setClasses] = useState<AssetClass[]>([]);
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [filters, setFilters] = useState({ assetClass: "", dateFrom: "", dateTo: "" });
+  const [filters, setFilters] = useState({ assetClassId: "", dateFrom: "", dateTo: "" });
 
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
 
+  const classMap = useMemo(() => new Map(classes.map((c) => [c.id, c.name])), [classes]);
+  const instMap = useMemo(() => new Map(institutions.map((i) => [i.id, i.name])), [institutions]);
+
   const totals = useMemo(() => {
     const total = items.reduce((acc, it) => acc + toNumber(it.amount, 0), 0);
     return { total };
-  }, [items]);
-
-  const assetClasses = useMemo(() => {
-    const set = new Set(items.map((i) => i.asset_class).filter(Boolean));
-    return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
   }, [items]);
 
   async function reloadAll() {
@@ -90,16 +88,20 @@ export function InvestmentsPage() {
     setLoading(true);
     setError(null);
     try {
-      const [inv, gs] = await Promise.all([
+      const [inv, gs, cls, inst] = await Promise.all([
         listInvestments(userId, {
-          assetClass: filters.assetClass.trim() ? filters.assetClass.trim() : undefined,
+          assetClassId: filters.assetClassId.trim() ? filters.assetClassId.trim() : undefined,
           dateFrom: filters.dateFrom.trim() ? filters.dateFrom.trim() : undefined,
           dateTo: filters.dateTo.trim() ? filters.dateTo.trim() : undefined
         }),
-        listGoals(userId)
+        listGoals(userId),
+        listAssetClasses(),
+        listInstitutions()
       ]);
       setItems(inv);
       setGoals(gs);
+      setClasses(cls);
+      setInstitutions(inst);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro desconhecido");
     } finally {
@@ -121,10 +123,10 @@ export function InvestmentsPage() {
       id: it.id,
       invested_at: it.invested_at ?? todayISO(),
       amount: String(it.amount ?? ""),
-      asset_class: it.asset_class ?? "",
+      asset_class_id: it.asset_class_id ?? "",
+      institution_id: it.institution_id ?? "",
       liquidity_type: it.liquidity_type ?? "diaria",
       maturity_date: it.maturity_date ?? "",
-      institution_name: it.institution_name ?? "",
       goal_id: it.goal_id ?? ""
     });
   }
@@ -138,7 +140,7 @@ export function InvestmentsPage() {
     | { ok: false } {
     const invested_at = form.invested_at.trim();
     const amount = parseAmount(form.amount);
-    const asset_class = normalizeAssetClass(form.asset_class);
+    const asset_class_id = form.asset_class_id.trim();
     const liquidity_type = form.liquidity_type;
 
     if (!invested_at) {
@@ -149,8 +151,8 @@ export function InvestmentsPage() {
       toaster.show({ title: "Valor inválido", message: "Informe um valor maior que zero.", variant: "warning" });
       return { ok: false };
     }
-    if (!asset_class) {
-      toaster.show({ title: "Classe obrigatória", message: "Informe a classe do investimento.", variant: "warning" });
+    if (!asset_class_id) {
+      toaster.show({ title: "Classe obrigatória", message: "Selecione a classe do investimento.", variant: "warning" });
       return { ok: false };
     }
 
@@ -177,10 +179,10 @@ export function InvestmentsPage() {
       user_id: userId,
       invested_at,
       amount,
-      asset_class,
+      asset_class_id,
+      institution_id: asNullable(form.institution_id),
       liquidity_type,
       maturity_date: liquidity_type === "no_vencimento" ? maturity_date : null,
-      institution_name: asNullable(form.institution_name),
       goal_id: nextGoal
     };
 
@@ -294,13 +296,39 @@ export function InvestmentsPage() {
               required
             />
 
-            <Input
-              label="Classe"
-              placeholder="Ex.: Renda Fixa, Ações, FIIs..."
-              value={form.asset_class}
-              onChange={(e) => setForm((s) => ({ ...s, asset_class: e.target.value }))}
-              required
-            />
+            <div className="space-y-2">
+              <div className="text-sm font-medium">Classe</div>
+              <select
+                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm"
+                value={form.asset_class_id}
+                onChange={(e) => setForm((s) => ({ ...s, asset_class_id: e.target.value }))}
+              >
+                <option value="">Selecione...</option>
+                {classes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <div className="text-xs text-muted">Classe padronizada (entidade) para consistência do dashboard.</div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="text-sm font-medium">Instituição (opcional)</div>
+              <select
+                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm"
+                value={form.institution_id}
+                onChange={(e) => setForm((s) => ({ ...s, institution_id: e.target.value }))}
+              >
+                <option value="">Selecione...</option>
+                {institutions.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.name}
+                  </option>
+                ))}
+              </select>
+              <div className="text-xs text-muted">Instituições são padronizadas para evitar variações de texto.</div>
+            </div>
 
             <div className="space-y-2">
               <div className="text-sm font-medium">Liquidez</div>
@@ -334,13 +362,6 @@ export function InvestmentsPage() {
               disabled={maturityDisabled}
               required={!maturityDisabled}
               hint={maturityDisabled ? "Habilita ao selecionar 'No vencimento'." : undefined}
-            />
-
-            <Input
-              label="Instituição"
-              placeholder="Ex.: Itaú, Nubank, XP..."
-              value={form.institution_name}
-              onChange={(e) => setForm((s) => ({ ...s, institution_name: e.target.value }))}
             />
 
             <div className="space-y-2">
@@ -386,13 +407,13 @@ export function InvestmentsPage() {
 
               <select
                 className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm"
-                value={filters.assetClass}
-                onChange={(e) => setFilters((s) => ({ ...s, assetClass: e.target.value }))}
+                value={filters.assetClassId}
+                onChange={(e) => setFilters((s) => ({ ...s, assetClassId: e.target.value }))}
               >
                 <option value="">Todas as classes</option>
-                {assetClasses.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {classes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
                   </option>
                 ))}
               </select>
@@ -419,7 +440,7 @@ export function InvestmentsPage() {
                 <Button
                   variant="ghost"
                   onClick={() => {
-                    setFilters({ assetClass: "", dateFrom: "", dateTo: "" });
+                    setFilters({ assetClassId: "", dateFrom: "", dateTo: "" });
                     void setTimeout(() => void reloadAll(), 0);
                   }}
                   disabled={loading}
@@ -441,30 +462,33 @@ export function InvestmentsPage() {
               </div>
             ) : (
               <div className="mt-2 space-y-2">
-                {items.map((it) => (
-                  <div key={it.id} className="rounded-xl border border-border p-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="font-medium">{formatBRL(it.amount as any)}</div>
-                        <div className="mt-1 text-xs text-muted">
-                          {it.invested_at} • {it.asset_class} •{" "}
-                          {it.liquidity_type === "diaria" ? "Diária" : "No vencimento"}
-                          {it.maturity_date ? ` • Vence em ${it.maturity_date}` : ""}
-                          {it.institution_name ? ` • ${it.institution_name}` : ""}
-                          {it.goal_id ? ` • Vinculado a meta` : ""}
+                {items.map((it) => {
+                  const className = it.asset_classes?.name ?? classMap.get(it.asset_class_id) ?? "—";
+                  const instName = it.institutions?.name ?? (it.institution_id ? instMap.get(it.institution_id) : "") ?? "";
+                  return (
+                    <div key={it.id} className="rounded-xl border border-border p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="font-medium">{formatBRL(it.amount as any)}</div>
+                          <div className="mt-1 text-xs text-muted">
+                            {it.invested_at} • {className} • {it.liquidity_type === "diaria" ? "Diária" : "No vencimento"}
+                            {it.maturity_date ? ` • Vence em ${it.maturity_date}` : ""}
+                            {instName ? ` • ${instName}` : ""}
+                            {it.goal_id ? ` • Vinculado a meta` : ""}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" onClick={() => startEdit(it)}>
+                            Editar
+                          </Button>
+                          <Button variant="danger" onClick={() => void onDelete(it)}>
+                            Remover
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" onClick={() => startEdit(it)}>
-                          Editar
-                        </Button>
-                        <Button variant="danger" onClick={() => void onDelete(it)}>
-                          Remover
-                        </Button>
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

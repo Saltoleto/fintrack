@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/states/EmptyState";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useToaster } from "@/components/feedback/useToaster";
 import { useAuth } from "@/domains/auth/useAuth";
+import { listAssetClasses, type AssetClass } from "@/domains/reference/assetClassesService";
 import {
   deleteAllocationTarget,
   listAllocationTargets,
@@ -13,8 +14,8 @@ import {
   type AllocationTarget
 } from "@/domains/allocation/allocationService";
 
-type FormState = { asset_class: string; target_percent: string };
-const emptyForm: FormState = { asset_class: "", target_percent: "" };
+type FormState = { asset_class_id: string; target_percent: string };
+const emptyForm: FormState = { asset_class_id: "", target_percent: "" };
 
 export function AllocationPage() {
   const { user } = useAuth();
@@ -22,19 +23,24 @@ export function AllocationPage() {
   const toaster = useToaster();
 
   const [items, setItems] = useState<AllocationTarget[]>([]);
+  const [classes, setClasses] = useState<AssetClass[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
 
+  const classMap = useMemo(() => new Map(classes.map((c) => [c.id, c.name])), [classes]);
+
   async function reload() {
     if (!userId) return;
     setLoading(true);
     setError(null);
     try {
-      const data = await listAllocationTargets(userId);
+      const [data, cls] = await Promise.all([listAllocationTargets(userId), listAssetClasses()]);
       setItems(data);
+      setClasses(cls);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro desconhecido");
     } finally {
@@ -54,11 +60,11 @@ export function AllocationPage() {
   async function onSubmit() {
     if (!userId) return;
 
-    const assetClass = form.asset_class.trim();
+    const asset_class_id = form.asset_class_id.trim();
     const pct = Number(form.target_percent);
 
-    if (!assetClass) {
-      toaster.show({ title: "Classe obrigatória", message: "Informe a classe de investimento.", variant: "warning" });
+    if (!asset_class_id) {
+      toaster.show({ title: "Classe obrigatória", message: "Selecione a classe de investimento.", variant: "warning" });
       return;
     }
     if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
@@ -68,7 +74,7 @@ export function AllocationPage() {
 
     setSaving(true);
     try {
-      await upsertAllocationTarget({ user_id: userId, asset_class: assetClass, target_percent: pct });
+      await upsertAllocationTarget({ user_id: userId, asset_class_id, target_percent: pct });
       toaster.show({ title: "Concentração salva", variant: "success" });
       resetForm();
       await reload();
@@ -84,7 +90,8 @@ export function AllocationPage() {
   }
 
   async function onDelete(item: AllocationTarget) {
-    const ok = confirm(`Remover a classe "${item.asset_class}"?`);
+    const className = item.asset_classes?.name ?? classMap.get(item.asset_class_id) ?? "classe";
+    const ok = confirm(`Remover a classe "${className}"?`);
     if (!ok) return;
 
     try {
@@ -111,13 +118,23 @@ export function AllocationPage() {
         <Card className="p-6">
           <div className="font-semibold">Nova / atualizar</div>
           <div className="mt-4 space-y-4">
-            <Input
-              label="Classe de investimento"
-              placeholder="Ex.: Renda Fixa, Ações, FIIs..."
-              value={form.asset_class}
-              onChange={(e) => setForm((s) => ({ ...s, asset_class: e.target.value }))}
-              required
-            />
+            <div className="space-y-2">
+              <div className="text-sm font-medium">Classe de investimento</div>
+              <select
+                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm"
+                value={form.asset_class_id}
+                onChange={(e) => setForm((s) => ({ ...s, asset_class_id: e.target.value }))}
+              >
+                <option value="">Selecione...</option>
+                {classes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <div className="text-xs text-muted">A classe é padronizada (entidade) para garantir consistência.</div>
+            </div>
+
             <Input
               label="Percentual desejado (%)"
               type="number"
@@ -140,7 +157,7 @@ export function AllocationPage() {
             </div>
 
             <div className="text-xs text-muted">
-              Observação: Se você salvar uma classe que já existe, ela será atualizada (upsert).
+              Observação: Se você salvar uma classe já existente, ela será atualizada (upsert por user+classe).
             </div>
           </div>
         </Card>
@@ -160,20 +177,23 @@ export function AllocationPage() {
             </div>
           ) : (
             <div className="mt-4 space-y-2">
-              {items.map((it) => (
-                <div
-                  key={it.id}
-                  className="rounded-xl border border-border p-3 flex items-center justify-between gap-3"
-                >
-                  <div>
-                    <div className="font-medium">{it.asset_class}</div>
-                    <div className="mt-1 text-xs text-muted">{String(it.target_percent)}%</div>
+              {items.map((it) => {
+                const name = it.asset_classes?.name ?? classMap.get(it.asset_class_id) ?? "—";
+                return (
+                  <div
+                    key={it.id}
+                    className="rounded-xl border border-border p-3 flex items-center justify-between gap-3"
+                  >
+                    <div>
+                      <div className="font-medium">{name}</div>
+                      <div className="mt-1 text-xs text-muted">{String(it.target_percent)}%</div>
+                    </div>
+                    <Button variant="danger" onClick={() => void onDelete(it)}>
+                      Remover
+                    </Button>
                   </div>
-                  <Button variant="danger" onClick={() => void onDelete(it)}>
-                    Remover
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </Card>
