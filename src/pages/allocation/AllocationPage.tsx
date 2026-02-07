@@ -80,17 +80,12 @@ export function AllocationPage() {
       resetForm();
       await reload();
     } catch (e) {
-  const msg =
-    e instanceof Error && e.message
-      ? e.message
-      : "A soma das concentrações não pode ultrapassar 100%.";
-  toaster.show({
-    title: "Limite excedido",
-    message: msg,
-    variant: "warning"
-  });
-}
- finally {
+      toaster.show({
+        title: "Não foi possível salvar",
+        message: e instanceof Error ? e.message : "Erro desconhecido",
+        variant: "danger"
+      });
+    } finally {
       setSaving(false);
     }
   }
@@ -105,17 +100,12 @@ export function AllocationPage() {
       toaster.show({ title: "Concentração removida", variant: "success" });
       await reload();
     } catch (e) {
-  const msg =
-    e instanceof Error && e.message
-      ? e.message
-      : "A soma das concentrações não pode ultrapassar 100%.";
-  toaster.show({
-    title: "Limite excedido",
-    message: msg,
-    variant: "warning"
-  });
-}
-
+      toaster.show({
+        title: "Não foi possível remover",
+        message: e instanceof Error ? e.message : "Erro desconhecido",
+        variant: "danger"
+      });
+    }
   }
 
   return (

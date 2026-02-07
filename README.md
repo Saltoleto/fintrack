@@ -132,3 +132,15 @@ Isso remove o `NOT NULL` das colunas legadas (`asset_class`, `institution_name`)
 
 Em alguns projetos Supabase/PostgREST, relações embutidas (ex.: `asset_classes(name)`) podem retornar **objeto** ou **array** dependendo da configuração de relacionamento.
 Este pacote inclui um helper `embedName()` em `src/utils/embeds.ts` e tipagens mais tolerantes para evitar erros de build.
+
+
+---
+## Sprint 6 — Dashboard Base (✅ Entregue)
+- Dashboard `/dashboard` com visão gerencial
+- Patrimônio total (soma dos investimentos)
+- Concentração por classe: **Real x Alvo**
+- Metas com valor aportado, valor da meta e barra com % de atingimento
+- Mensagens:
+  - “Este mês você ainda não realizou nenhum investimento”
+  - “Sua alocação alvo ainda não fecha 100%”
+- Estados de UX: loading / vazio / dados
