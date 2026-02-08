@@ -5,6 +5,7 @@ import { ErrorState } from "@/components/states/ErrorState";
 import { useAuth } from "@/domains/auth/useAuth";
 import { loadDashboard, type DashboardData } from "@/domains/dashboard/dashboardService";
 import { formatBRL } from "@/utils/format";
+import { toUserFriendlyError } from "@/utils/errors";
 
 function toneFromProgress(p: number): "ok" | "warn" | "done" {
   if (p >= 100) return "done";
@@ -38,7 +39,7 @@ export function DashboardPage() {
       const d = await loadDashboard(userId);
       setData(d);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro desconhecido");
+      setError(toUserFriendlyError(e, "dashboard.load"));
     } finally {
       setLoading(false);
     }

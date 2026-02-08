@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/Input";
 import { EmptyState } from "@/components/states/EmptyState";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useToaster } from "@/components/feedback/useToaster";
+import { toUserFriendlyError } from "@/utils/errors";
 import { useAuth } from "@/domains/auth/useAuth";
 import { createGoal, deleteGoal, listGoals, type Goal, updateGoal } from "@/domains/goals/goalsService";
 import { formatBRL, toNumber } from "@/utils/format";
@@ -46,7 +47,7 @@ export function GoalsPage() {
       const data = await listGoals(userId);
       setItems(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro desconhecido");
+      setError(toUserFriendlyError(e, "goal.load"));
     } finally {
       setLoading(false);
     }
@@ -107,7 +108,7 @@ export function GoalsPage() {
     } catch (e) {
       toaster.show({
         title: "Não foi possível salvar",
-        message: e instanceof Error ? e.message : "Erro desconhecido",
+        message: toUserFriendlyError(e, "goal.save"),
         variant: "danger"
       });
     } finally {
@@ -128,7 +129,7 @@ export function GoalsPage() {
     } catch (e) {
       toaster.show({
         title: "Não foi possível remover",
-        message: e instanceof Error ? e.message : "Erro desconhecido",
+        message: toUserFriendlyError(e, "goal.save"),
         variant: "danger"
       });
     }

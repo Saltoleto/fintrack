@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useMemo, useState } from "react";
 import { useToaster } from "@/components/feedback/useToaster";
+import { toUserFriendlyError } from "@/utils/errors";
 import { requestPasswordReset } from "@/domains/auth/authService";
 
 function isEmail(value: string) {
@@ -48,7 +49,7 @@ export function ForgotPasswordPage() {
           } catch (err) {
             toaster.show({
               title: "Não foi possível enviar o link",
-              message: err instanceof Error ? err.message : "Erro desconhecido",
+              message: toUserFriendlyError(err, "auth"),
               variant: "danger"
             });
           } finally {

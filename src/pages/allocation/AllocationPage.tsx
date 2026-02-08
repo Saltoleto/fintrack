@@ -7,6 +7,7 @@ import { ErrorState } from "@/components/states/ErrorState";
 import { useToaster } from "@/components/feedback/useToaster";
 import { useAuth } from "@/domains/auth/useAuth";
 import { embedName } from "@/utils/embeds";
+import { getErrorMessage, toUserFriendlyError } from "@/utils/errors";
 import { listAssetClasses, type AssetClass } from "@/domains/reference/assetClassesService";
 import {
   deleteAllocationTarget,
@@ -15,29 +16,6 @@ import {
   type AllocationTarget
 } from "@/domains/allocation/allocationService";
 
-function extractErrorMessage(e: unknown): string {
-  if (e instanceof Error) return e.message;
-  if (typeof e === "string") return e;
-  if (e && typeof e === "object") {
-    const anyE = e as any;
-    if (typeof anyE.message === "string") return anyE.message;
-    if (typeof anyE.details === "string") return anyE.details;
-    try {
-      return JSON.stringify(e);
-    } catch {
-      return "Erro desconhecido";
-    }
-  }
-  return "Erro desconhecido";
-}
-
-function allocationUserMessage(raw: string): string {
-  const r = (raw || "").toLowerCase();
-  if (r.includes("100") || r.includes("exceed") || r.includes("ultrapass") || r.includes("excede")) {
-    return "A soma das concentrações ultrapassa 100%. Ajuste os percentuais para que o total seja exatamente 100%.";
-  }
-  return raw || "Erro desconhecido";
-}
 
 type FormState = { asset_class_id: string; target_percent: string };
 const emptyForm: FormState = { asset_class_id: "", target_percent: "" };
@@ -67,7 +45,7 @@ export function AllocationPage() {
       setItems(data);
       setClasses(cls);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro desconhecido");
+      setError(toUserFriendlyError(e, "allocation.load"));
     } finally {
       setLoading(false);
     }
@@ -107,7 +85,7 @@ async function onSubmit() {
   } catch (e) {
     toaster.show({
       title: "Não foi possível salvar",
-      message: allocationUserMessage(extractErrorMessage(e)),
+      message: toUserFriendlyError(e, "allocation.save"),
       variant: "danger"
     });
   } finally {
@@ -127,7 +105,7 @@ async function onSubmit() {
     } catch (e) {
       toaster.show({
         title: "Não foi possível remover",
-        message: e instanceof Error ? e.message : "Erro desconhecido",
+        message: getErrorMessage(e),
         variant: "danger"
       });
     }

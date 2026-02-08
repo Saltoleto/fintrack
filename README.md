@@ -169,3 +169,25 @@ Este pacote inclui um helper `embedName()` em `src/utils/embeds.ts` e tipagens m
 - Hotfix definitivo: mensagem clara ao ultrapassar 100% na concentração por classe (tratamento no salvar/remover).
 
 - Hotfix: mensagem clara ao ultrapassar 100% na concentração por classe (sem quebrar build).
+
+---
+
+## Acordos de entrega (NÃO NEGOCIÁVEIS)
+
+1. **Código sempre funcional e completo** (proibido entregar build quebrado).
+2. **Melhores práticas e padrões** (tipagem, organização, sem “remendos” perigosos).
+3. **Entregar o escopo acordado na sprint**.
+4. **Antes de iniciar cada sprint:** validar escopo + critérios de aceite.
+5. **Final de cada sprint:** rodada de testes estilo QA.
+6. **Toda entrega gera o projeto completo** (zip com todos os arquivos).
+7. **VALIDAR O ZIP ANTES DE ENTREGAR (ENFÁTICO):**
+   - `npm install` (se necessário) + `npm run build` **a partir do zip entregue**
+   - smoke test mínimo (navegar, criar/salvar/excluir)
+
+---
+
+## Marcos e baseline (rollback)
+
+- **Baseline estável para rollback:** `0.7.23-sprint7-stable-v5` (build ok + fluxos críticos validados).
+- **Versão atual (Sprint 8):** `0.8.0-sprint8-stability-refactor` (**sob observação**).  
+  Caso qualquer problema seja identificado, o rollback recomendado é para o baseline acima.

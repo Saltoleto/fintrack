@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useState } from "react";
 import { useToaster } from "@/components/feedback/useToaster";
+import { toUserFriendlyError } from "@/utils/errors";
 import { signUpWithEmail } from "@/domains/auth/authService";
 
 function isEmail(value: string) {
@@ -63,7 +64,7 @@ export function SignupPage() {
           } catch (err) {
             toaster.show({
               title: "Não foi possível criar a conta",
-              message: err instanceof Error ? err.message : "Erro desconhecido",
+              message: toUserFriendlyError(err, "auth"),
               variant: "danger"
             });
           } finally {

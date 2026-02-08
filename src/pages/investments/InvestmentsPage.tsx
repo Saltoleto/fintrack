@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/Input";
 import { EmptyState } from "@/components/states/EmptyState";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useToaster } from "@/components/feedback/useToaster";
+import { toUserFriendlyError } from "@/utils/errors";
 import { useAuth } from "@/domains/auth/useAuth";
 import { formatBRL, toNumber } from "@/utils/format";
 import { embedName } from "@/utils/embeds";
@@ -105,7 +106,7 @@ export function InvestmentsPage() {
       setClasses(cls);
       setInstitutions(inst);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro desconhecido");
+      setError(toUserFriendlyError(e, "investment.load"));
     } finally {
       setLoading(false);
     }
@@ -223,7 +224,7 @@ export function InvestmentsPage() {
     } catch (e) {
       toaster.show({
         title: "Não foi possível salvar",
-        message: e instanceof Error ? e.message : "Erro desconhecido",
+        message: toUserFriendlyError(e, "investment.save"),
         variant: "danger"
       });
     } finally {
@@ -247,7 +248,7 @@ export function InvestmentsPage() {
     } catch (e) {
       toaster.show({
         title: "Não foi possível remover",
-        message: e instanceof Error ? e.message : "Erro desconhecido",
+        message: toUserFriendlyError(e, "investment.save"),
         variant: "danger"
       });
     }

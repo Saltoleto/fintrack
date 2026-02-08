@@ -3,6 +3,7 @@ import type { Session, User } from "@supabase/supabase-js";
 import { getInitialSession, onAuthStateChange, signOut } from "@/domains/auth/supabaseAuth";
 import { LoadingState } from "@/components/states/LoadingState";
 import { useToaster } from "@/components/feedback/useToaster";
+import { toUserFriendlyError } from "@/utils/errors";
 
 type AuthContextValue = {
   isLoading: boolean;
@@ -35,7 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (e) {
         toaster.show({
           title: "Falha ao inicializar autenticação",
-          message: e instanceof Error ? e.message : "Erro desconhecido",
+          message: toUserFriendlyError(e, "auth"),
           variant: "danger"
         });
       } finally {
@@ -57,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (e) {
           toaster.show({
             title: "Não foi possível sair",
-            message: e instanceof Error ? e.message : "Erro desconhecido",
+            message: toUserFriendlyError(e, "auth"),
             variant: "danger"
           });
         }

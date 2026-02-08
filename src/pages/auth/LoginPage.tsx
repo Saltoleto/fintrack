@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useMemo, useState } from "react";
 import { useToaster } from "@/components/feedback/useToaster";
+import { toUserFriendlyError } from "@/utils/errors";
 import { signInWithEmail } from "@/domains/auth/authService";
 
 function isEmail(value: string) {
@@ -46,7 +47,7 @@ export function LoginPage() {
           } catch (err) {
             toaster.show({
               title: "Não foi possível entrar",
-              message: err instanceof Error ? err.message : "Erro desconhecido",
+              message: toUserFriendlyError(err, "auth"),
               variant: "danger"
             });
           } finally {

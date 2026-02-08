@@ -1,7 +1,7 @@
 {
   "name": "fintrack",
   "private": true,
-  "version": "0.7.23-sprint7-stable-v5",
+  "version": "0.8.2-stable-refactor-pwa-fix",
   "type": "module",
   "scripts": {
     "dev": "vite",
