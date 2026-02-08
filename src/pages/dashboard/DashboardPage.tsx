@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { EmptyState } from "@/components/states/EmptyState";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useAuth } from "@/domains/auth/useAuth";
@@ -209,22 +210,10 @@ export function DashboardPage() {
 
                       <div style={{ textAlign: "right" }}>
                         <div className="text-sm font-semibold">{pct(g.progress_percent)}</div>
-                        <div
-                          style={{
-                            marginTop: 8,
-                            width: 140,
-                            height: 8,
-                            borderRadius: 999,
-                            background: "rgba(255,255,255,0.10)",
-                            overflow: "hidden"
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: `${g.progress_percent}%`,
-                              height: "100%",
-                              background: tone === "done" ? "rgb(var(--success))" : "rgb(var(--primary))"
-                            }}
+                        <div className="mt-2" style={{ width: 180 }}>
+                          <ProgressBar
+                            value={g.progress_percent}
+                            tone={tone === "done" ? "success" : tone === "warn" ? "warning" : "neutral"}
                           />
                         </div>
                       </div>

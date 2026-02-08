@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -76,6 +76,7 @@ export function InvestmentsPage() {
   const [filters, setFilters] = useState({ assetClassId: "", dateFrom: "", dateTo: "" });
 
   const [form, setForm] = useState<FormState>(emptyForm);
+  const formRef = useRef<HTMLDivElement | null>(null);
   const [saving, setSaving] = useState(false);
 
   const classMap = useMemo(() => new Map(classes.map((c) => [c.id, c.name])), [classes]);
@@ -122,6 +123,8 @@ export function InvestmentsPage() {
   }
 
   function startEdit(it: Investment) {
+    toaster.show({ title: "Editando investimento", message: "Os dados foram carregados no formulário.", variant: "neutral" });
+    window.setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
     setForm({
       id: it.id,
       invested_at: it.invested_at ?? todayISO(),
@@ -264,6 +267,7 @@ export function InvestmentsPage() {
       </div>
 
       <Card className="p-6">
+        <div ref={formRef}>
         <div className="flex items-center justify-between gap-4">
           <div>
             <div className="text-sm text-muted">Total investido (filtros aplicados)</div>
@@ -273,6 +277,8 @@ export function InvestmentsPage() {
             <div className="text-sm text-muted">Quantidade</div>
             <div className="text-xl font-semibold">{items.length}</div>
           </div>
+        </div>
+      
         </div>
       </Card>
 
@@ -302,7 +308,7 @@ export function InvestmentsPage() {
             <div className="space-y-2">
               <div className="text-sm font-medium">Classe</div>
               <select
-                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm"
+                className="select"
                 value={form.asset_class_id}
                 onChange={(e) => setForm((s) => ({ ...s, asset_class_id: e.target.value }))}
               >
@@ -319,7 +325,7 @@ export function InvestmentsPage() {
             <div className="space-y-2">
               <div className="text-sm font-medium">Instituição (opcional)</div>
               <select
-                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm"
+                className="select"
                 value={form.institution_id}
                 onChange={(e) => setForm((s) => ({ ...s, institution_id: e.target.value }))}
               >
@@ -370,7 +376,7 @@ export function InvestmentsPage() {
             <div className="space-y-2">
               <div className="text-sm font-medium">Meta (opcional)</div>
               <select
-                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm"
+                className="select"
                 value={form.goal_id}
                 onChange={(e) => setForm((s) => ({ ...s, goal_id: e.target.value }))}
               >
@@ -398,8 +404,8 @@ export function InvestmentsPage() {
             <div className="text-xs text-muted">
               Observação: <span className="text-fg">user_id</span> é enviado explicitamente (RLS ativo).
             </div>
-          </div>
-        </Card>
+        </div>
+      </Card>
 
         <Card className="p-6">
           <div className="font-semibold">Lista</div>
@@ -409,7 +415,7 @@ export function InvestmentsPage() {
               <div className="text-sm font-medium">Filtros</div>
 
               <select
-                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm"
+                className="select"
                 value={filters.assetClassId}
                 onChange={(e) => setFilters((s) => ({ ...s, assetClassId: e.target.value }))}
               >
@@ -477,9 +483,12 @@ export function InvestmentsPage() {
                             {it.invested_at} • {className} • {it.liquidity_type === "diaria" ? "Diária" : "No vencimento"}
                             {it.maturity_date ? ` • Vence em ${it.maturity_date}` : ""}
                             {instName ? ` • ${instName}` : ""}
-                            {it.goal_id ? ` • Vinculado à meta${goalTitleById.get(it.goal_id) ? ` - ${goalTitleById.get(it.goal_id)}` : ""}` : ""}
+                            {it.goal_id
+                              ? ` • Vinculado à meta${goalTitleById.get(it.goal_id) ? ` - ${goalTitleById.get(it.goal_id)}` : ""}`
+                              : ""}
                           </div>
                         </div>
+
                         <div className="flex items-center gap-2">
                           <Button variant="ghost" onClick={() => startEdit(it)}>
                             Editar
@@ -494,8 +503,8 @@ export function InvestmentsPage() {
                 })}
               </div>
             )}
-          </div>
-        </Card>
+        </div>
+      </Card>
       </div>
     </div>
   );

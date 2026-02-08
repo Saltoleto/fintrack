@@ -18,13 +18,13 @@ export const ToasterContext = createContext<Ctx | null>(null);
 function toastClasses(variant: ToastVariant) {
   switch (variant) {
     case "success":
-      return "border-success/25 bg-success/10";
+      return "toast-success";
     case "warning":
-      return "border-warning/25 bg-warning/10";
+      return "toast-warning";
     case "danger":
-      return "border-danger/25 bg-danger/10";
+      return "toast-danger";
     default:
-      return "border-border bg-surface";
+      return "";
   }
 }
 
@@ -43,9 +43,9 @@ export function ToasterProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToasterContext.Provider value={value}>
       {children}
-      <div className="fixed right-4 top-4 z-50 flex w-[min(420px,calc(100vw-2rem))] flex-col gap-2">
+      <div className="toast-stack">
         {toasts.map((t) => (
-          <div key={t.id} className={`rounded-xl border p-3 shadow-soft ${toastClasses(t.variant ?? "neutral")}`}>
+          <div key={t.id} className={`toast ${toastClasses(t.variant ?? "neutral")}`}>
             <div className="font-medium">{t.title}</div>
             {t.message && <div className="mt-1 text-sm text-muted">{t.message}</div>}
           </div>

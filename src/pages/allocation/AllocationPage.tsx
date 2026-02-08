@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { EmptyState } from "@/components/states/EmptyState";
 import { ErrorState } from "@/components/states/ErrorState";
 import { useToaster } from "@/components/feedback/useToaster";
@@ -61,37 +62,37 @@ export function AllocationPage() {
   }
 
 
-async function onSubmit() {
-  if (!userId) return;
-
-  const asset_class_id = form.asset_class_id.trim();
-  const pct = Number(form.target_percent);
-
-  if (!asset_class_id) {
-    toaster.show({ title: "Classe obrigatória", message: "Selecione a classe de investimento.", variant: "warning" });
-    return;
+  async function onSubmit() {
+    if (!userId) return;
+  
+    const asset_class_id = form.asset_class_id.trim();
+    const pct = Number(form.target_percent);
+  
+    if (!asset_class_id) {
+      toaster.show({ title: "Classe obrigatória", message: "Selecione a classe de investimento.", variant: "warning" });
+      return;
+    }
+    if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
+      toaster.show({ title: "Percentual inválido", message: "Use um valor entre 0 e 100.", variant: "warning" });
+      return;
+    }
+  
+    setSaving(true);
+    try {
+      await upsertAllocationTarget({ user_id: userId, asset_class_id, target_percent: pct });
+      toaster.show({ title: "Concentração salva", variant: "success" });
+      resetForm();
+      await reload();
+    } catch (e) {
+      toaster.show({
+        title: "Não foi possível salvar",
+        message: toUserFriendlyError(e, "allocation.save"),
+        variant: "danger"
+      });
+    } finally {
+      setSaving(false);
+    }
   }
-  if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
-    toaster.show({ title: "Percentual inválido", message: "Use um valor entre 0 e 100.", variant: "warning" });
-    return;
-  }
-
-  setSaving(true);
-  try {
-    await upsertAllocationTarget({ user_id: userId, asset_class_id, target_percent: pct });
-    toaster.show({ title: "Concentração salva", variant: "success" });
-    resetForm();
-    await reload();
-  } catch (e) {
-    toaster.show({
-      title: "Não foi possível salvar",
-      message: toUserFriendlyError(e, "allocation.save"),
-      variant: "danger"
-    });
-  } finally {
-    setSaving(false);
-  }
-}
 
   async function onDelete(item: AllocationTarget) {
     const className = embedName(item.asset_classes) ?? classMap.get(item.asset_class_id) ?? "classe";
@@ -125,7 +126,7 @@ async function onSubmit() {
             <div className="space-y-2">
               <div className="text-sm font-medium">Classe de investimento</div>
               <select
-                className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm"
+                className="select"
                 value={form.asset_class_id}
                 onChange={(e) => setForm((s) => ({ ...s, asset_class_id: e.target.value }))}
               >
@@ -168,10 +169,9 @@ async function onSubmit() {
 
         <Card className="p-6">
           <div className="font-semibold">Suas classes</div>
-<div className="mt-1 text-xs text-muted">
-  Total configurado: {items.reduce((acc, i) => acc + Number(i.target_percent), 0)}% —
-  Faltam: {100 - items.reduce((acc, i) => acc + Number(i.target_percent), 0)}%
-</div>
+          <div className="mt-1 text-xs text-muted">
+            Total configurado: {items.reduce((acc, i) => acc + Number(i.target_percent), 0)}% — Faltam: {Math.max(0, 100 - items.reduce((acc, i) => acc + Number(i.target_percent), 0))}%
+          </div>
 
 
           {loading ? (
@@ -196,6 +196,9 @@ async function onSubmit() {
                     <div>
                       <div className="font-medium">{name}</div>
                       <div className="mt-1 text-xs text-muted">{String(it.target_percent)}%</div>
+                      <div className="mt-2" style={{ width: 220 }}>
+                        <ProgressBar value={Number(it.target_percent)} tone={Number(it.target_percent) >= 80 ? "warning" : "neutral"} />
+                      </div>
                     </div>
                     <Button variant="danger" onClick={() => void onDelete(it)}>
                       Remover

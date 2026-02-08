@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -29,6 +29,7 @@ export function GoalsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [form, setForm] = useState<FormState>(emptyForm);
+  const formRef = useRef<HTMLDivElement | null>(null);
   const [saving, setSaving] = useState(false);
 
   const userId = user?.id ?? "";
@@ -59,6 +60,8 @@ export function GoalsPage() {
   }, [userId]);
 
   function startEdit(goal: Goal) {
+    toaster.show({ title: "Editando meta", message: "Os dados foram carregados no formulário.", variant: "neutral" });
+    window.setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
     setForm({
       id: goal.id,
       title: goal.title ?? "",
@@ -145,6 +148,7 @@ export function GoalsPage() {
       </div>
 
       <Card className="p-6">
+        <div ref={formRef}>
         <div className="flex items-center justify-between gap-4">
           <div>
             <div className="text-sm text-muted">Total investido em metas</div>
@@ -154,6 +158,8 @@ export function GoalsPage() {
             <div className="text-sm text-muted">Total de metas</div>
             <div className="text-xl font-semibold">{formatBRL(totals.target)}</div>
           </div>
+        </div>
+      
         </div>
       </Card>
 
@@ -178,18 +184,18 @@ export function GoalsPage() {
               required
             />
             <div>
-  <Input
-    label="Valor aportado (R$)"
-    type="number"
-    inputMode="decimal"
-    placeholder="0"
-    value={form.invested_amount}
-    disabled
-  />
-  <div className="mt-1 text-xs text-muted">
-    Este valor é calculado automaticamente a partir dos investimentos vinculados à meta.
-  </div>
-</div>
+              <Input
+                label="Valor aportado (R$)"
+                type="number"
+                inputMode="decimal"
+                placeholder="0"
+                value={form.invested_amount}
+                disabled
+              />
+                <div className="mt-1 text-xs text-muted">
+                Este valor é calculado automaticamente a partir dos investimentos vinculados à meta.
+              </div>
+            </div>
             <Input
               label="Prioridade (1 a 5)"
               type="number"
@@ -213,8 +219,8 @@ export function GoalsPage() {
             <div className="text-xs text-muted">
               Observação: <span className="text-fg">user_id</span> é enviado explicitamente pela aplicação (sem trigger).
             </div>
-          </div>
-        </Card>
+        </div>
+      </Card>
 
         <Card className="p-6">
           <div className="font-semibold">Suas metas</div>
@@ -245,6 +251,7 @@ export function GoalsPage() {
                           {formatBRL(invested)} / {formatBRL(target)} • Prioridade {g.priority}
                         </div>
                       </div>
+
                       <div className="flex items-center gap-2">
                         <Button variant="ghost" onClick={() => startEdit(g)}>
                           Editar
