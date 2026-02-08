@@ -27,7 +27,7 @@ export type DashboardInsights = {
   noInvestmentsThisMonth: boolean;
   targetNotClosedTo100: boolean;
   goalTopUpSuggestion: { goalId: string; goalTitle: string; missingAmount: number } | null;
-  concentrationWarning: { assetClassId: string; className: string; realPercent: number } | null;
+  concentrationWarning: { assetClassId: string; className: string; realPercent: number; targetPercent: number } | null;
 };
 
 export type DashboardData = {
@@ -118,14 +118,15 @@ export async function loadDashboard(userId: string): Promise<DashboardData> {
       .filter((x) => x.missing > 0)
       .sort((a, b) => a.missing - b.missing)[0] ?? null;
 
-  // Concentration warning: most concentrated class above threshold
+  // Concentration warning: alert when REAL allocation exceeds configured TARGET for that class
   const mostConcentrated = rows[0] ?? null;
   const concentrationWarning =
-    mostConcentrated && mostConcentrated.real_percent >= 50
+    mostConcentrated && mostConcentrated.target_percent !== null && mostConcentrated.real_percent > mostConcentrated.target_percent
       ? {
           assetClassId: mostConcentrated.asset_class_id,
           className: mostConcentrated.name,
-          realPercent: mostConcentrated.real_percent
+          realPercent: mostConcentrated.real_percent,
+          targetPercent: mostConcentrated.target_percent
         }
       : null;
 

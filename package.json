@@ -1,7 +1,7 @@
 {
   "name": "fintrack",
   "private": true,
-  "version": "0.9.5-ux-premium-select-contrast",
+  "version": "0.9.8-ux-premium-insight-vs-target-fix",
   "type": "module",
   "scripts": {
     "dev": "vite",

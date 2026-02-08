@@ -80,9 +80,9 @@ export function DashboardPage() {
     if (data.insights.concentrationWarning) {
       list.push({
         title: "Carteira muito concentrada",
-        body: `Sua carteira está muito concentrada na classe ${data.insights.concentrationWarning.className} (${data.insights.concentrationWarning.realPercent.toFixed(
+        body: `Sua carteira atual ultrapassou a concentração definida para a classe ${data.insights.concentrationWarning.className} (${data.insights.concentrationWarning.realPercent.toFixed(
           1
-        )}%).`
+        )}% / alvo ${data.insights.concentrationWarning.targetPercent.toFixed(0)}%).`
       });
     }
 

@@ -8,7 +8,7 @@ import { ErrorState } from "@/components/states/ErrorState";
 import { useToaster } from "@/components/feedback/useToaster";
 import { useAuth } from "@/domains/auth/useAuth";
 import { embedName } from "@/utils/embeds";
-import { getErrorMessage, toUserFriendlyError } from "@/utils/errors";
+import { toUserFriendlyError } from "@/utils/errors";
 import { listAssetClasses, type AssetClass } from "@/domains/reference/assetClassesService";
 import {
   deleteAllocationTarget,
@@ -106,7 +106,7 @@ export function AllocationPage() {
     } catch (e) {
       toaster.show({
         title: "Não foi possível remover",
-        message: getErrorMessage(e),
+        message: toUserFriendlyError(e, "allocation.delete"),
         variant: "danger"
       });
     }
