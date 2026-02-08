@@ -161,3 +161,11 @@ Este pacote inclui um helper `embedName()` em `src/utils/embeds.ts` e tipagens m
 - Hotfix: Aportado (metas) agora é **somente leitura** e calculado via investimentos vinculados.
 
 - Hotfix: ajuste de build (TypeScript) para recálculo de aportado via função interna.
+
+- Hotfix: Aportado das metas passa a ser calculado (soma de investimentos vinculados) na leitura de metas/dashboard, garantindo consistência.
+
+- Hotfix: mensagem clara ao ultrapassar 100% na concentração por classe.
+
+- Hotfix definitivo: mensagem clara ao ultrapassar 100% na concentração por classe (tratamento no salvar/remover).
+
+- Hotfix: mensagem clara ao ultrapassar 100% na concentração por classe (sem quebrar build).

@@ -19,8 +19,31 @@ export async function listGoals(userId: string): Promise<Goal[]> {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return (data ?? []) as Goal[];
+
+  const goals = (data ?? []) as Goal[];
+  if (goals.length === 0) return goals;
+
+  // Fonte de verdade do "aportado": soma dos investimentos vinculados (sem triggers).
+  const goalIds = goals.map((g) => g.id);
+  const { data: invData, error: invErr } = await supabase
+    .from("investments")
+    .select("goal_id,amount")
+    .eq("user_id", userId)
+    .in("goal_id", goalIds);
+
+  if (invErr) throw invErr;
+
+  const sums = new Map<string, number>();
+  for (const row of (invData ?? []) as Array<{ goal_id: string | null; amount: string | number }>) {
+    if (!row.goal_id) continue;
+    const n = typeof row.amount === "string" ? Number(row.amount) : row.amount;
+    sums.set(row.goal_id, (sums.get(row.goal_id) ?? 0) + (Number.isFinite(n) ? n : 0));
+  }
+
+  // Sobrescreve invested_amount para refletir o total calculado.
+  return goals.map((g) => ({ ...g, invested_amount: sums.get(g.id) ?? 0 }));
 }
+
 
 export async function createGoal(input: {
   user_id: string;

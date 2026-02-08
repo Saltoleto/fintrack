@@ -15,6 +15,30 @@ import {
   type AllocationTarget
 } from "@/domains/allocation/allocationService";
 
+function extractErrorMessage(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (typeof e === "string") return e;
+  if (e && typeof e === "object") {
+    const anyE = e as any;
+    if (typeof anyE.message === "string") return anyE.message;
+    if (typeof anyE.details === "string") return anyE.details;
+    try {
+      return JSON.stringify(e);
+    } catch {
+      return "Erro desconhecido";
+    }
+  }
+  return "Erro desconhecido";
+}
+
+function allocationUserMessage(raw: string): string {
+  const r = (raw || "").toLowerCase();
+  if (r.includes("100") || r.includes("exceed") || r.includes("ultrapass") || r.includes("excede")) {
+    return "A soma das concentrações ultrapassa 100%. Ajuste os percentuais para que o total seja exatamente 100%.";
+  }
+  return raw || "Erro desconhecido";
+}
+
 type FormState = { asset_class_id: string; target_percent: string };
 const emptyForm: FormState = { asset_class_id: "", target_percent: "" };
 
@@ -58,37 +82,38 @@ export function AllocationPage() {
     setForm(emptyForm);
   }
 
-  async function onSubmit() {
-    if (!userId) return;
 
-    const asset_class_id = form.asset_class_id.trim();
-    const pct = Number(form.target_percent);
+async function onSubmit() {
+  if (!userId) return;
 
-    if (!asset_class_id) {
-      toaster.show({ title: "Classe obrigatória", message: "Selecione a classe de investimento.", variant: "warning" });
-      return;
-    }
-    if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
-      toaster.show({ title: "Percentual inválido", message: "Use um valor entre 0 e 100.", variant: "warning" });
-      return;
-    }
+  const asset_class_id = form.asset_class_id.trim();
+  const pct = Number(form.target_percent);
 
-    setSaving(true);
-    try {
-      await upsertAllocationTarget({ user_id: userId, asset_class_id, target_percent: pct });
-      toaster.show({ title: "Concentração salva", variant: "success" });
-      resetForm();
-      await reload();
-    } catch (e) {
-      toaster.show({
-        title: "Não foi possível salvar",
-        message: e instanceof Error ? e.message : "Erro desconhecido",
-        variant: "danger"
-      });
-    } finally {
-      setSaving(false);
-    }
+  if (!asset_class_id) {
+    toaster.show({ title: "Classe obrigatória", message: "Selecione a classe de investimento.", variant: "warning" });
+    return;
   }
+  if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
+    toaster.show({ title: "Percentual inválido", message: "Use um valor entre 0 e 100.", variant: "warning" });
+    return;
+  }
+
+  setSaving(true);
+  try {
+    await upsertAllocationTarget({ user_id: userId, asset_class_id, target_percent: pct });
+    toaster.show({ title: "Concentração salva", variant: "success" });
+    resetForm();
+    await reload();
+  } catch (e) {
+    toaster.show({
+      title: "Não foi possível salvar",
+      message: allocationUserMessage(extractErrorMessage(e)),
+      variant: "danger"
+    });
+  } finally {
+    setSaving(false);
+  }
+}
 
   async function onDelete(item: AllocationTarget) {
     const className = embedName(item.asset_classes) ?? classMap.get(item.asset_class_id) ?? "classe";
